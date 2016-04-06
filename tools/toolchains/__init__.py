@@ -217,6 +217,9 @@ class mbedToolchain:
 
         self.mp_pool = None
 
+        if 'UVISOR_PRESENT' in self.macros:
+            self.target.core = re.sub(r"F$", '', self.target.core)
+
     def get_output(self):
         return self.output
 
