@@ -110,7 +110,7 @@ uint32_t const os_tickfreq   = OS_CLOCK;
 uint16_t const os_tickus_i   = OS_CLOCK/1000000;
 uint16_t const os_tickus_f   = (((uint64_t)(OS_CLOCK-1000000*(OS_CLOCK/1000000)))<<16)/1000000;
 uint32_t const os_trv        = OS_TRV;
-uint8_t  const os_flags      = OS_RUNPRIV;
+uint8_t  const os_flags      = 0/*OS_RUNPRIV*/;
 
 /* Export following defines to uVision debugger. */
 __USED uint32_t const CMSIS_RTOS_API_Version = osCMSIS;
