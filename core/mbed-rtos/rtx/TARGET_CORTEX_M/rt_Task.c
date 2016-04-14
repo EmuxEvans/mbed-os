@@ -401,6 +401,9 @@ void rt_sys_init (FUNCP first_task, U32 prio_stksz, void *stk) {
   os_tsk.run = &os_idle_TCB;
   os_tsk.run->state = RUNNING;
 
+  /* XXX */
+  rt_switch_req(&os_idle_TCB);
+
   /* Initialize ps queue */
   os_psq->first = 0U;
   os_psq->last  = 0U;
