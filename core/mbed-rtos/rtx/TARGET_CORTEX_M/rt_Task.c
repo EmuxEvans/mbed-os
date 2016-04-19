@@ -41,6 +41,17 @@
 #include "rt_Robin.h"
 #include "rt_HAL_CM.h"
 
+#include "api/inc/privcall.h"
+
+/* XXX Move to nicer place */
+extern const struct uvisor_privcall_table uvisor_privcall;
+
+void stupid_thread_switch(P_TCB p_TCB)
+{
+    uvisor_privcall.thread_switch(p_TCB->task_id);
+}
+
+
 /*----------------------------------------------------------------------------
  *      Global Variables
  *---------------------------------------------------------------------------*/
@@ -247,6 +258,7 @@ OS_TID rt_tsk_create (FUNCP task, U32 prio_stksz, void *stk, void *argv) {
   os_active_TCB[i-1U] = task_context;
   task_context->task_id = (U8)i;
   DBG_TASK_NOTIFY(task_context, __TRUE);
+  uvisor_privcall.thread_alloc(task_context->task_id);
   rt_dispatch (task_context);
   return ((OS_TID)i);
 }
@@ -295,6 +307,7 @@ OS_RESULT rt_tsk_delete (OS_TID task_id) {
         p_MCB = p_MCB0;
       }
     }
+    uvisor_privcall.thread_free(os_tsk.run->task_id);
     os_active_TCB[os_tsk.run->task_id-1U] = NULL;
     rt_free_box (mp_stk, os_tsk.run->stack);
     os_tsk.run->stack = NULL;
@@ -343,6 +356,7 @@ OS_RESULT rt_tsk_delete (OS_TID task_id) {
         p_MCB = p_MCB0;
       }
     }
+    uvisor_privcall.thread_free(os_tsk.run->task_id);
     os_active_TCB[task_id-1U] = NULL;
     rt_free_box (mp_stk, task_context->stack);
     task_context->stack = NULL;
