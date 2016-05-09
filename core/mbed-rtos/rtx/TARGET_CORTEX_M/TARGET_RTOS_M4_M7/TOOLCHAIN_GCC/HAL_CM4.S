@@ -174,7 +174,6 @@ _free_box:
 
         .thumb_func
         .type   SVC_Handler, %function
-        .global stupid_thread_switch
         .global SVC_Handler
 SVC_Handler:
         .ifdef  IFX_XMC4XXX
@@ -241,8 +240,8 @@ SVC_ContextRestore:
         STR     R2,[R3]                 /* os_tsk.run = os_tsk.new */
 
         PUSH    {R2,R3}
-        MOV     R0, R2                  /* stupid_thread_switch(r2_new_tcb) */
-        BL      stupid_thread_switch    /* Notify observer of context switch */
+        MOV     R0, R2                  /* os_tsk.new */
+        BL      rt_switch_processes     /* Switch processes, if needed */
         POP     {R2,R3}
 
         LDR     R12,[R2,#TCB_TSTACK]    /* os_tsk.new->tsk_stack */
@@ -348,8 +347,8 @@ Sys_Switch:
         STR     R2,[R3]                 /* os_tsk.run = os_tsk.new */
 
         PUSH    {R2,R3}
-        MOV     R0, R2                  /* stupid_thread_switch(r2_new_tcb) */
-        BL      stupid_thread_switch    /* Notify observer of context switch */
+        MOV     R0, R2                  /* os_tsk.new */
+        BL      rt_switch_processes     /* Switch processes, if needed */
         POP     {R2,R3}
 
         LDR     R12,[R2,#TCB_TSTACK]    /* os_tsk.new->tsk_stack */
