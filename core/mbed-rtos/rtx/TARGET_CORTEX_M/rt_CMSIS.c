@@ -61,6 +61,7 @@
 #include "rt_MemBox.h"
 #include "rt_Memory.h"
 #include "rt_HAL_CM.h"
+#include "rt_Process.h"
 
 #define os_thread_cb OS_TCB
 
@@ -2167,6 +2168,78 @@ os_InRegs osEvent osMailGet (osMailQId queue_id, uint32_t millisec) {
   if (ret.status == osEventMessage) ret.status = osEventMail;
 
   return ret;
+}
+
+
+//  ==== Process Management ====
+
+// Process Management Service Calls declarations
+SVC_0_1(svcProcessGetId,          osProcessId,             RET_int32_t)
+SVC_1_1(svcProcessIdFromThreadId, osProcessId, osThreadId, RET_int32_t)
+SVC_1_1(sysProcessSwitch,         osStatus,    osThreadId, RET_osStatus)
+
+// Process Management Service & ISR Calls
+
+/// Return the process ID of the current running thread
+osProcessId svcProcessGetId (void) {
+  return (osProcessId) rt_proc_self();
+}
+
+/// Return the process ID from a thread ID.
+osProcessId svcProcessIdFromThreadId (osThreadId thread_id) {
+  return (osProcessId) rt_proc_from_tsk(rt_tid2ptcb(thread_id));
+}
+
+/// Switch execution context from the running process to another one.
+osStatus sysProcessSwitch (osThreadId thread_id) {
+  OS_PID src_proc;
+  OS_PID dst_proc;
+  P_TCB  dst_ptcb;
+
+  /* Switch only if the destination process ID is different from the currently
+   * running one. */
+  src_proc = rt_proc_self();
+  dst_ptcb = rt_tid2ptcb(thread_id);
+  dst_proc = rt_proc_from_tsk(dst_ptcb);
+  if (src_proc != -1 && dst_proc != -1 && src_proc != dst_proc) {
+      rt_proc_switch(dst_proc);
+  }
+
+  return osOK;
+}
+
+// Thread Public API
+
+/// Return the process ID of the current running thread
+osProcessId osProcessGetId (void) {
+  if ((__get_CONTROL() & 1U) == 0U) {           // Privileged mode
+    return   svcProcessGetId();
+  } else {                                      // Unprivileged mode
+    return __svcProcessGetId();
+  }
+}
+//
+/// Return the process ID from a thread ID.
+osProcessId osProcessIdFromThreadId (osThreadId thread_id) {
+  if ((__get_CONTROL() & 1U) == 0U) {           // Privileged mode
+    return   svcProcessIdFromThreadId(thread_id);
+  } else {                                      // Unprivileged mode
+    return __svcProcessIdFromThreadId(thread_id);
+  }
+}
+
+
+/// Switch execution context from the running process to another one.
+osStatus osProcessSwitch (osThreadId thread_id) {
+  if ((__get_CONTROL() & 1U) == 0U) {           // Privileged mode
+    if (sysProcessSwitch(thread_id) == osOK) {
+        return osOK;
+    } else {
+        return osErrorValue;
+    }
+  } else {                                      // Unprivileged mode
+    return osErrorOS;
+  }
 }
 
 

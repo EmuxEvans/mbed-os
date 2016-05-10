@@ -231,6 +231,9 @@ typedef struct  {
   } def;                               ///< event definition
 } osEvent;
 
+/// Process ID identifies a process.
+typedef int32_t osProcessId;
+
 
 //  ==== Kernel Control Functions ====
 
@@ -658,6 +661,22 @@ osStatus osMailFree (osMailQId queue_id, void *mail);
 
 #endif  // Mail Queues available
 
+
+//  ==== Process Management ====
+
+/// Return the process ID of the current running thread.
+/// \return process ID for reference by other functions or -1 in case of error.
+osProcessId osProcessGetId (void);
+
+/// Return the process ID from a thread ID.
+/// \param[in]      thread_id  thread ID as obtained from \ref osThreadCreate
+/// \return process ID for reference by other functions or -1 in case of error.
+osProcessId osProcessIdFromThreadId (osThreadId thread_id);
+
+/// Switch execution context from the running process to another one.
+/// \param[in]      process_id  destination process ID as obtained from osProcessIdFromThreadId
+/// \return status code that indicates the execution status of the function.
+osStatus osProcessSwitch (osThreadId thread_id);
 
 //  ==== RTX Extensions ====
 

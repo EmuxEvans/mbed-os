@@ -58,6 +58,7 @@
 
 typedef void    *OS_ID;
 typedef uint32_t OS_TID;
+typedef int32_t  OS_PID;
 typedef uint32_t OS_MUT[4];
 typedef uint32_t OS_RESULT;
 

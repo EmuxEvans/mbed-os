@@ -48,6 +48,7 @@ typedef unsigned int       BOOL;
 typedef void               (*FUNCP)(void);
 
 typedef U32     OS_TID;
+typedef S32     OS_PID;
 typedef void    *OS_ID;
 typedef U32     OS_RESULT;
 
@@ -79,6 +80,9 @@ typedef struct OS_TCB {
 
   /* Task entry point used for uVision debugger                              */
   FUNCP  ptask;                   /* Task entry address                      */
+
+  /* Process ID */
+  U32    process_id;              /* Process ID                              */
 } *P_TCB;
 #define TCB_STACKF      37        /* 'stack_frame' offset                    */
 #define TCB_TSTACK      44        /* 'tsk_stack' offset                      */
