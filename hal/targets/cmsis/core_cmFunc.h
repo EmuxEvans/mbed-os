@@ -323,6 +323,36 @@ __STATIC_INLINE void __set_FPSCR(uint32_t fpscr)
 #elif defined ( __GNUC__ ) /*------------------ GNU Compiler ---------------------*/
 /* GNU gcc specific functions */
 
+/* The following condition infers that the user code is running in unprivileged
+ * mode. */
+#if (defined(OS_RUNPRIV) && OS_RUNPRIV == 1) || (defined(UVISOR_PRESENT) && UVISOR_PRESENT == 1)
+
+/* Code that runs in unprivileged mode should not call global enable/disable
+ * IRQs, since the NVIC state can only be changed in privileged mode.
+ * Accesses in unprivileged mode fail silently with no apparent fault, but the
+ * state of the NVIC module stays the same.
+ *
+ * Instead of these APIs, please use the vIRQ_DisableAll() and vIRQ_EnableAll()
+ * APIs, which provide similar functionality but with slightly different
+ * expectations:
+ *   * They can be run by unprivileged code.
+ *   * They disable all IRQs only for a single secure domain (uVisor box), but
+ *     IRQs exclusively owned by other boxes will still remain enabled.
+ *   * They disable scheduling in a secure domain, but still leave it enabled
+ *     for cross-boxes thread switching. If you used the __disable/__enable_irq
+ *     APIs to enter critical sections or enforce synchronization, please revert
+ *     to proper thread communication/synchronization semantics. */
+
+#define __enable_irq()  _Pragma("GCC error \
+\"__enable_irq() is deprecated and must be replaced with vIRQ_EnableAll(). \
+Please checkout the vIRQ_EnableAll API documentation for more information.\"")
+
+#define __disable_irq() _Pragma("GCC error \
+\"__disable_irq() is deprecated and must be replaced with vIRQ_DisableAll(). \
+Please checkout the vIRQ_DisableAll API documentation for more information.\"")
+
+#else /* OS_RUNPRIV  || UVISOR_PRESENT */
+
 /** \brief  Enable IRQ Interrupts
 
   This function enables IRQ interrupts by clearing the I-bit in the CPSR.
@@ -344,6 +374,7 @@ __attribute__( ( always_inline ) ) __STATIC_INLINE void __disable_irq(void)
   __ASM volatile ("cpsid i" : : : "memory");
 }
 
+#endif /* OS_RUNPRIV || UVISOR_PRESENT */
 
 /** \brief  Get Control Register
 
